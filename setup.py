@@ -30,8 +30,8 @@ setup(name='robotframework-imagehorizonlibrary',
       url='https://github.com/Eficode/robotframework-imagehorizonlibrary',
       license='MIT',
       install_requires=[
-          'robotframework>=2.8',
-          'pyautogui>=0.9.30'
+          'robotframework>=7.0',
+          'pyautogui>=0.9.50'
       ],
       packages=[
           'ImageHorizonLibrary',
