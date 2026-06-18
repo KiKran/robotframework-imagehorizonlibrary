@@ -89,8 +89,8 @@ class _Mouse(object):
         try:
             coordinates = [int(coord) for coord in coordinates]
         except ValueError:
-            raise MouseException('Coordinates %s are not integers' %
-                                 (coordinates,))
+            raise MouseException(
+                f'Coordinates {coordinates, } are not integers')    #todo test the comma in f-string
         ag.moveTo(*coordinates)
 
     def mouse_down(self, button='left'):

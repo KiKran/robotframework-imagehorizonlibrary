@@ -10,22 +10,23 @@ from robot.api import logger as LOGGER
 from ..errors import ImageNotFoundException, InvalidImageException
 from ..errors import ReferenceFolderException
 
+
 class _RecognizeImages(object):
 
     def __normalize(self, path):
         if (not self.reference_folder or
                 not isinstance(self.reference_folder, str) or
                 not isdir(self.reference_folder)):
-            raise ReferenceFolderException('Reference folder is invalid: '
-                                           '"%s"' % self.reference_folder)
+            raise ReferenceFolderException(
+                f'Reference folder is invalid: "{self.reference_folder}"')
         if (not path or not isinstance(path, str)):
-            raise InvalidImageException('"%s" is invalid image name.' % path)
+            raise InvalidImageException(f'"{path}" is invalid image name.')
         path = str(path.lower().replace(' ', '_'))
         path = abspath(path_join(self.reference_folder, path))
         if not path.endswith('.png') and not isdir(path):
             path += '.png'
         if not isfile(path) and not isdir(path):
-            raise InvalidImageException('Image path not found: "%s".' % path)
+            raise InvalidImageException(f'Image path not found: "{path}".')
         return path
 
     def click_image(self, reference_image):
@@ -35,8 +36,8 @@ class _RecognizeImages(object):
         `Reference image names`.
         '''
         center_location = self.locate(reference_image)
-        LOGGER.info('Clicking image "%s" in position %s' % (reference_image,
-                                                            center_location))
+        LOGGER.info(
+            f'Clicking image "{reference_image}" in position {center_location}')
         ag.click(center_location)
         return center_location
 
@@ -165,7 +166,7 @@ class _RecognizeImages(object):
             for f in listdir(self.__normalize(reference_image)):
                 if not isfile(self.__normalize(path_join(reference_image, f))):
                     raise InvalidImageException(
-                                            self.__normalize(reference_image))
+                        self.__normalize(reference_image))
                 reference_images.append(path_join(reference_image, f))
 
         def try_locate(ref_image):
@@ -194,12 +195,13 @@ class _RecognizeImages(object):
 
         if location is None:
             if log_it:
-                LOGGER.info('Image "%s" was not found '
-                            'on screen.' % reference_image)
+                LOGGER.info(
+                    f'Image "{reference_image}" was not found on screen.')
             self._run_on_failure()
             raise ImageNotFoundException(reference_image)
         if log_it:
-            LOGGER.info('Image "%s" found at %r' % (reference_image, location))
+            # todo check with comma in location
+            LOGGER.info(f'Image "{reference_image}" found at {location, }')
         center_point = ag.center(location)
         x = center_point.x
         y = center_point.y
@@ -253,5 +255,36 @@ class _RecognizeImages(object):
         if location is None:
             self._run_on_failure()
             raise ImageNotFoundException(self.__normalize(reference_image))
-        LOGGER.info('Image "%s" found at %r' % (reference_image, location))
+        LOGGER.info(f'Image "{reference_image}" found at {location}')
+        return location
+
+    def wait_for_and_click(self, reference_image: str, timeout: float = 10) -> tuple:
+        '''Tries to locate given image from the screen for given time.
+        If the image is found, it is clicked.
+
+        Fail if the image is not found on the screen after ``timeout`` has
+        expired.
+
+        See `Reference image names` for documentation for ``reference_image``.
+
+        ``timeout``(float) is given in seconds .
+
+        Returns Python tuple ``(x, y)`` of the coordinates.
+        '''
+        stop_time = time() + float(timeout)
+        location = None
+        with self._suppress_keyword_on_failure():
+            while time() < stop_time:
+                try:
+                    location = self._locate(reference_image, log_it=False)
+                    break
+                except ImageNotFoundException:
+                    pass
+        if location is None:
+            self._run_on_failure()
+            raise ImageNotFoundException(self.__normalize(reference_image))
+        LOGGER.info(f'Image "{reference_image}" found at {location}')
+        # now also click on image
+        LOGGER.info(f'Clicking image {reference_image} in position {location}')
+        ag.click(location)
         return location
