@@ -25,13 +25,14 @@ License :: OSI Approved :: MIT License
 '''.strip().splitlines()
 
 setup(name='robotframework-imagehorizonlibrary',
-      author='Eficode Oy',
+      author='Original from Eficode Oy, forked by Kilian Kranz',
       author_email='info@eficode.com',
       url='https://github.com/Eficode/robotframework-imagehorizonlibrary',
       license='MIT',
       install_requires=[
-          'robotframework>=7.0',
-          'pyautogui>=0.9.50'
+          'robotframework>=6.0',
+          'pyautogui>=0.9.50',
+          'PyScreeze==0.1.29',
       ],
       packages=[
           'ImageHorizonLibrary',
