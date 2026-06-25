@@ -10,13 +10,34 @@ It extends the functionality with additional keywords and features required for 
 Keywords such as `Click With Offset` or `Wait For And Click Image` have new advanced arguments for full control mouse control.
 These include, for example:
 
-| argument   | type  | default | description                                                                            |
-| ---------- | ----- | ------- | -------------------------------------------------------------------------------------- |
-| `x_offset` | int   | 0       | offset in the horizontal plane in both positive and negative directions (right / left) |
-| `y_offset` | int   | 0       | offset in the vertical plane in both positive and negative directions (up / down)      |
-| `button`   | str   | 'left'  | specified mouse button to click with (possible are 'right', 'left', 'middle')          |
-| `clicks`   | int   | 1       | number of clicks (in interval) of the specified button                                 |
-| `interval` | float | 0.0     | interval of clicks in seconds                                                          |
+.. list-table::
+   :header-rows: 1
+   :widths: 12 8 8 72
+
+   * - argument
+     - type
+     - default
+     - description
+   * - ``x_offset``
+     - int
+     - 0
+     - offset in the horizontal plane in both positive and negative directions (right / left)
+   * - ``y_offset``
+     - int
+     - 0
+     - offset in the vertical plane in both positive and negative directions (up / down)
+   * - ``button``
+     - str
+     - 'left'
+     - specified mouse button to click with (possible are 'right', 'left', 'middle')
+   * - ``clicks``
+     - int
+     - 1
+     - number of clicks (in interval) of the specified button
+   * - ``interval``
+     - float
+     - 0.0
+     - interval of clicks in seconds
 
 Keywords have also been added for more convenient usage, such as `Does Not Exist` or `Scroll Window`.
 
