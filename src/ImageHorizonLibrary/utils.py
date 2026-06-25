@@ -22,11 +22,13 @@ def is_linux():
 def is_java():
     return PLATFORM.lower().startswith('java')
 
+
 def has_retina():
     if is_mac():
         # Will return 0 if there is a retina display
         return call("system_profiler SPDisplaysDataType | grep 'Retina'", shell=True) == 0
     return False
+
 
 def has_cv():
     has_cv = True
@@ -35,3 +37,15 @@ def has_cv():
     except ModuleNotFoundError as err:
         has_cv = False
     return has_cv
+
+# for ocr
+def has_ocr():
+    try:
+        import pytesseract
+    except ImportError:
+        return False
+    try:
+        pytesseract.get_tesseract_version()
+        return True
+    except Exception:
+        return False

@@ -37,6 +37,7 @@ class ImageHorizonLibrary(_Keyboard,
                           _Mouse,
                           _OperatingSystem,
                           _RecognizeImages,
+                          _RecognizeText,
                           _Screenshot):
     '''A cross-platform Robot Framework library for GUI automation.
 
@@ -115,7 +116,7 @@ class ImageHorizonLibrary(_Keyboard,
 
     def __init__(self, reference_folder=None, screenshot_folder=None,
                  keyword_on_failure='ImageHorizonLibrary.Take A Screenshot',
-                 confidence=None):
+                 confidence=None, ocr_confidence=None):
         '''ImageHorizonLibrary can be imported with several options.
 
         ``reference_folder`` is path to the folder where all reference images
@@ -135,6 +136,12 @@ class ImageHorizonLibrary(_Keyboard,
                        It can be used if python-opencv is installed and
                        is given as number between 0 and 1. Not used
                        by default.
+                       
+        ``ocr_confidence`` provides a threshold rolerancde for the 
+                        ocr-recognition usage. It can be used if pytesseract
+                        is installed and is given a number between 0 and 100.
+                        Defaults to None.
+        
         '''
 
         self.reference_folder = reference_folder
@@ -147,7 +154,9 @@ class ImageHorizonLibrary(_Keyboard,
         self.is_linux = utils.is_linux()
         self.has_retina = utils.has_retina()
         self.has_cv = utils.has_cv()
+        self.has_ocr = utils.has_ocr()
         self.confidence = confidence
+        self.ocr_confidence = ocr_confidence
 
     def _get_location(self, direction, location, offset):
         x, y = location

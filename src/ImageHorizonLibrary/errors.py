@@ -33,3 +33,7 @@ class ReferenceFolderException(Exception):
 
 class ScreenshotFolderException(Exception):
     pass
+
+# for ocr
+class OCRException(Exception):
+    pass
