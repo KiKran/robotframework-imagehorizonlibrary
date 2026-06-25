@@ -64,7 +64,8 @@ class _Mouse(object):
 
     def click_with_offset_from_location(self, location: tuple, x_offset: int = 0, y_offset: int = 0, clicks=1,
                                         button='left', interval=0.0):
-        '''Clicks at given location with offset in both planes.
+        '''       
+        Clicks at given location with offset in both planes.
 
         ``location`` can be any Python sequence type (tuple, list, etc.) that
         represents coordinates on the screen ie. have an x-value and y-value.
@@ -79,6 +80,8 @@ class _Mouse(object):
 
         See `Click` for documentation for valid buttons.
 
+        v1.2 Keyword
+
         Example:
 
         | ${image location}=    | Locate             | my image |        ||
@@ -88,7 +91,7 @@ class _Mouse(object):
         '''
         self._advanced_click_to_the_direction_of(location, x_offset, y_offset,
                                                  clicks, button, interval)
-        
+
     def click_location(self, location: tuple):
         '''
         Clicks at given location. (No need for Click in direction with offset=0)
@@ -161,7 +164,8 @@ class _Mouse(object):
         ag.tripleClick(button=button, interval=float(interval))
 
     def click_with_offset(self, x_offset: int = 0, y_offset: int = 0, button: str = 'left', clicks: int = 1, interval: float = 0.0):
-        '''Advanced click option on the current mouse position with all possible click adjustments.
+        '''
+        Advanced click option on the current mouse position with all possible click adjustments.
 
         `x_offset` (int): offset on the x-plane. Positive is offset to the right, negative to the left
         `y_offset` (int): offset on the y-plane. Positive is offset to the top, negative to the bottom
@@ -169,9 +173,11 @@ class _Mouse(object):
         See documentation of ``button`` in `Click`.
 
         See documentation of ``interval`` in `Double Click`.
+        v1.2 Keyword
         '''
         if interval != 0.0 and clicks == 1:
-            raise MouseException(f'Click interval is set ({interval}) but number of clicks is set to 1.')
+            raise MouseException(
+                f'Click interval is set ({interval}) but number of clicks is set to 1.')
         self._advanced_click_to_the_direction_of(None,
                                                  x_offset, y_offset, clicks, button, interval)
 
@@ -188,4 +194,5 @@ class _Mouse(object):
         elif isinstance(scroll_amount, str):
             ag.scroll(int(scroll_amount))
         else:
-            raise MouseException(f'Given number for `scroll_amount` could not be resolved: {scroll_amount}, type: {type(scroll_amount)}.')
+            raise MouseException(
+                f'Given number for `scroll_amount` could not be resolved: {scroll_amount}, type: {type(scroll_amount)}.')

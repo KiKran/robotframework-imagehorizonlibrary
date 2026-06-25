@@ -9,7 +9,7 @@ Click An Aktueller Location
     Click With Offset    5    -10
     Click With Offset    0    15    button=right
     Click With Offset    0    15    button=left    clicks=2
-    Run Keyword And Ignore Error    name=Click With Offset    0    15    button=right    interval=2.1
+    Run Keyword And Ignore Error    Click With Offset    0    15    button=right    interval=2.1
 
 Click mit Location
     Click With Offset From Location    (600, 600)    10    20.5
