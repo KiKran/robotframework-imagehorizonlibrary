@@ -13,7 +13,7 @@ from ..errors import ReferenceFolderException
 
 class _RecognizeImages(object):
 
-    def __normalize(self, path):
+    def _normalize(self, path):
         if (not self.reference_folder or
                 not isinstance(self.reference_folder, str) or
                 not isdir(self.reference_folder)):
@@ -50,6 +50,15 @@ class _RecognizeImages(object):
         location = self.locate(reference_image)
         self._click_to_the_direction_of(direction, location, offset, clicks,
                                         button, interval)
+
+    def _locate_and_click_with_offset(self, reference_image, x_offset, y_offset,
+                                      clicks, button, interval):
+        '''
+        New method to click at image with offsets in both planes. See i.e. `_advanced_click_to_the_direction_of`
+        '''
+        location = self.locate(reference_image)
+        self._advanced_click_to_the_direction_of(location, x_offset, y_offset, clicks,
+                                                 button, interval)
 
     def click_to_the_above_of_image(self, reference_image, offset, clicks=1,
                                     button='left', interval=0.0):
@@ -91,6 +100,22 @@ class _RecognizeImages(object):
         '''
         self._locate_and_click_direction('right', reference_image, offset,
                                          clicks, button, interval)
+
+    def click_with_offset_from_image(self, reference_image, x_offset=0, y_offset=0, timeout=None, clicks=1,
+                                     button='left', interval=0.0):
+        '''        
+        Clicks at given reference image with offset in both planes and with timeout.
+
+        See argument documentation in `Click With Offset From Location` and `Wait For`.
+        v1.2 Keyword
+        '''
+        if timeout:
+            location = self.wait_for(reference_image, timeout)
+            self._advanced_click_to_the_direction_of(location, x_offset, y_offset, clicks,
+                                                     button, interval)
+        else:
+            self._locate_and_click_with_offset(reference_image, x_offset, y_offset,
+                                               clicks, button, interval)
 
     def copy_from_the_above_of(self, reference_image, offset):
         '''Clicks three times above of reference image by given offset and
@@ -147,26 +172,26 @@ class _RecognizeImages(object):
     def _locate(self, reference_image, log_it=True):
         is_dir = False
         try:
-            if isdir(self.__normalize(reference_image)):
+            if isdir(self._normalize(reference_image)):
                 is_dir = True
         except InvalidImageException:
             pass
         is_file = False
         try:
-            if isfile(self.__normalize(reference_image)):
+            if isfile(self._normalize(reference_image)):
                 is_file = True
         except InvalidImageException:
             pass
-        reference_image = self.__normalize(reference_image)
+        reference_image = self._normalize(reference_image)
 
         reference_images = []
         if is_file:
             reference_images = [reference_image]
         elif is_dir:
-            for f in listdir(self.__normalize(reference_image)):
-                if not isfile(self.__normalize(path_join(reference_image, f))):
+            for f in listdir(self._normalize(reference_image)):
+                if not isfile(self._normalize(path_join(reference_image, f))):
                     raise InvalidImageException(
-                        self.__normalize(reference_image))
+                        self._normalize(reference_image))
                 reference_images.append(path_join(reference_image, f))
 
         def try_locate(ref_image):
@@ -222,6 +247,20 @@ class _RecognizeImages(object):
             except ImageNotFoundException:
                 return False
 
+    def does_not_exist(self, reference_image):
+        '''        
+        Returns ``False`` if reference image was found on screen or
+        ``True`` otherwise. Never fails.
+
+        See `Reference image names` for documentation for ``reference_image``.
+        v1.2 Keyword
+        '''
+        with self._suppress_keyword_on_failure():
+            try:
+                return not bool(self._locate(reference_image, log_it=False))
+            except ImageNotFoundException:
+                return True
+
     def locate(self, reference_image):
         '''Locate image on screen.
 
@@ -254,37 +293,17 @@ class _RecognizeImages(object):
                     pass
         if location is None:
             self._run_on_failure()
-            raise ImageNotFoundException(self.__normalize(reference_image))
+            raise ImageNotFoundException(self._normalize(reference_image))
         LOGGER.info(f'Image "{reference_image}" found at {location}')
         return location
 
-    def wait_for_and_click(self, reference_image: str, timeout: float = 10) -> tuple:
-        '''Tries to locate given image from the screen for given time.
-        If the image is found, it is clicked.
-
-        Fail if the image is not found on the screen after ``timeout`` has
-        expired.
-
-        See `Reference image names` for documentation for ``reference_image``.
-
-        ``timeout``(float) is given in seconds .
-
-        Returns Python tuple ``(x, y)`` of the coordinates.
+    def wait_for_and_click_image(self, reference_image, timeout: int = 10, x_offset: int = 0, y_offset: int = 0, button: str = 'left', clicks: int = 1, interval: float = 0.0):
         '''
-        stop_time = time() + float(timeout)
-        location = None
-        with self._suppress_keyword_on_failure():
-            while time() < stop_time:
-                try:
-                    location = self._locate(reference_image, log_it=False)
-                    break
-                except ImageNotFoundException:
-                    pass
-        if location is None:
-            self._run_on_failure()
-            raise ImageNotFoundException(self.__normalize(reference_image))
-        LOGGER.info(f'Image "{reference_image}" found at {location}')
-        # now also click on image
-        LOGGER.info(f'Clicking image {reference_image} in position {location}')
-        ag.click(location)
-        return location
+        Tries to locate given image from the screen for given time and clicks at found location
+
+        See Click With Offset From Location for documentation of offset, click, button and interval.
+        v1.2 Keyword
+        '''
+        location = self.wait_for(reference_image, timeout)
+        self._advanced_click_to_the_direction_of(location, x_offset, y_offset, clicks,
+                                                 button, interval)

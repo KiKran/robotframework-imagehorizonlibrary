@@ -8,7 +8,10 @@ log.html
 *.swp
 *__pycache__
 /bin
+/build
+/dist
 /include
 /lib
+/src/robotframework_imagehorizonlibrary.egg-info
 /.vscode
 /ImHorizon_env

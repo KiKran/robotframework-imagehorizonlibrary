@@ -162,9 +162,46 @@ class ImageHorizonLibrary(_Keyboard,
             y = y + offset
         return x, y
 
+    def _get_advanced_location(self, location, x_offset, y_offset):
+        ''''
+        New method to get location with both offset planes
+        '''
+        x, y = location
+        x_offset = int(x_offset)
+        y_offset = int(y_offset)
+        return x+x_offset, y+y_offset
+
     def _click_to_the_direction_of(self, direction, location, offset,
                                    clicks, button, interval):
         x, y = self._get_location(direction, location, offset)
+        try:
+            clicks = int(clicks)
+        except ValueError:
+            raise MouseException('Invalid argument "%s" for `clicks`')
+        if button not in ['left', 'middle', 'right']:
+            raise MouseException('Invalid button "%s" for `button`')
+        try:
+            interval = float(interval)
+        except ValueError:
+            raise MouseException('Invalid argument "%s" for `interval`')
+
+        LOGGER.info('Clicking %d time(s) at (%d, %d) with '
+                    '%s mouse button at interval %f' % (clicks, x, y,
+                                                        button, interval))
+        ag.click(x, y, clicks=clicks, button=button, interval=interval)
+
+    def _advanced_click_to_the_direction_of(self, location, x_offset, y_offset,
+                                            clicks, button, interval):
+        '''
+        New method to click with different offsets in one keyword, see 'advanced_click'
+        '''
+        # location can be none
+        if location:
+            x, y = self._get_advanced_location(location, x_offset, y_offset)
+        else:
+            # get cur. location
+            x0, y0 = ag.position()
+            x, y = self._get_advanced_location((x0, y0), x_offset, y_offset)
         try:
             clicks = int(clicks)
         except ValueError:
@@ -277,7 +314,7 @@ class ImageHorizonLibrary(_Keyboard,
                 else:
                     self.confidence = new_confidence
             except TypeError as err:
-                LOGGER.warn("Can't set confidence to {}".format(new_confidence))
+                LOGGER.warn(
+                    "Can't set confidence to {}".format(new_confidence))
         else:
             self.confidence = None
-
