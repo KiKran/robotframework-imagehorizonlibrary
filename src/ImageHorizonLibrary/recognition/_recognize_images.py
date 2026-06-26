@@ -29,16 +29,23 @@ class _RecognizeImages(object):
             raise InvalidImageException(f'Image path not found: "{path}".')
         return path
 
-    def click_image(self, reference_image):
-        '''Finds the reference image on screen and clicks it once.
+    def click_image(self, reference_image, clicks=1,
+                    button='left', interval=0.0):
+        '''Finds the reference image on screen and clicks its center point.
 
-        ``reference_image`` is automatically normalized as described in the
+        The number of ``clicks``, the mouse ``button`` and the ``interval``
+        between clicks can also be defined.
+
+        ``reference_image`` is automatically normalized as described in
         `Reference image names`.
+
+        Enhanced in v1.2
         '''
         center_location = self.locate(reference_image)
         LOGGER.info(
             f'Clicking image "{reference_image}" in position {center_location}')
-        ag.click(center_location)
+        self._advanced_click_to_the_direction_of(center_location, 0, 0, clicks,
+                                                 button, interval)
         return center_location
 
     def _click_to_the_direction_of(self, direction, location, offset,
@@ -54,7 +61,7 @@ class _RecognizeImages(object):
     def _locate_and_click_with_offset(self, reference_image, x_offset, y_offset,
                                       clicks, button, interval):
         '''
-        New method to click at image with offsets in both planes. See i.e. `_advanced_click_to_the_direction_of`
+        New method to click at image with offsets in both planes. See e.g. `_advanced_click_to_the_direction_of`
         '''
         location = self.locate(reference_image)
         self._advanced_click_to_the_direction_of(location, x_offset, y_offset, clicks,
@@ -103,11 +110,16 @@ class _RecognizeImages(object):
 
     def click_with_offset_from_image(self, reference_image, x_offset=0, y_offset=0, timeout=None, clicks=1,
                                      button='left', interval=0.0):
-        '''        
-        Clicks at given reference image with offset in both planes and with timeout.
+        '''Clicks the given reference image with an offset on both planes.
 
-        See argument documentation in `Click With Offset From Location` and `Wait For`.
-        v1.2 Keyword
+        If ``timeout`` is given, the keyword first waits for the image to
+        appear before clicking.
+
+        See `Click With Offset From Location` for documentation of
+        ``x_offset``, ``y_offset``, ``clicks``, ``button`` and ``interval``,
+        and `Wait For` for ``timeout``.
+
+        New in v1.2
         '''
         if timeout:
             location = self.wait_for(reference_image, timeout)
@@ -225,8 +237,7 @@ class _RecognizeImages(object):
             self._run_on_failure()
             raise ImageNotFoundException(reference_image)
         if log_it:
-            # todo check with comma in location
-            LOGGER.info(f'Image "{reference_image}" found at {location, }')
+            LOGGER.info(f'Image "{reference_image}" found at {location}')
         center_point = ag.center(location)
         x = center_point.x
         y = center_point.y
@@ -248,12 +259,12 @@ class _RecognizeImages(object):
                 return False
 
     def does_not_exist(self, reference_image):
-        '''        
-        Returns ``False`` if reference image was found on screen or
+        '''Returns ``False`` if reference image was found on screen or
         ``True`` otherwise. Never fails.
 
         See `Reference image names` for documentation for ``reference_image``.
-        v1.2 Keyword
+
+        New in v1.2
         '''
         with self._suppress_keyword_on_failure():
             try:
@@ -298,12 +309,64 @@ class _RecognizeImages(object):
         return location
 
     def wait_for_and_click_image(self, reference_image, timeout: int = 10, x_offset: int = 0, y_offset: int = 0, button: str = 'left', clicks: int = 1, interval: float = 0.0):
-        '''
-        Tries to locate given image from the screen for given time and clicks at found location
+        '''Tries to locate the given image on screen within ``timeout`` and
+        clicks the found location.
 
-        See Click With Offset From Location for documentation of offset, click, button and interval.
-        v1.2 Keyword
+        See `Wait For` for documentation of ``timeout`` and
+        `Click With Offset From Location` for ``x_offset``, ``y_offset``,
+        ``clicks``, ``button`` and ``interval``.
+
+        New in v1.2
         '''
         location = self.wait_for(reference_image, timeout)
         self._advanced_click_to_the_direction_of(location, x_offset, y_offset, clicks,
                                                  button, interval)
+        return location
+
+    def click_image_and_wait_for(self, click_image, wait_image, timeout: int = 10, x_offset: int = 0, y_offset: int = 0, button: str = 'left', clicks: int = 1, interval: float = 0.0):
+        '''Clicks the given ``click_image`` and then waits for ``wait_image``
+        to appear. Fails if either image is not found.
+
+        See `Wait For` for documentation of ``timeout`` and
+        `Click With Offset From Location` for ``x_offset``, ``y_offset``,
+        ``clicks``, ``button`` and ``interval``.
+
+        New in v1.2
+        '''
+        # click first image
+        self.click_with_offset_from_image(
+            click_image, x_offset, y_offset, 0, clicks, button, interval)
+        location = self.wait_for(wait_image, timeout)
+        return location
+
+    def click_image_if_exists(self, reference_image, clicks=1,
+                              button='left', interval=0.0):
+        '''Clicks the given reference image only if it is found on screen. Never fails.
+
+        Unlike `Click Image`, this keyword never fails and never triggers
+        `keyword_on_failure` (e.g. a screenshot) when the image is missing.
+        If the image is not on screen, nothing is clicked.
+
+        The number of ``clicks``, the mouse ``button`` and the ``interval``
+        between clicks can be defined as in `Click Image`.
+
+        Returns ``PASS`` if the image was found and clicked, or ``FAIL``
+        if it was not found.
+
+        See `Reference image names` for documentation for ``reference_image``.
+
+        New in v1.2
+        '''
+        with self._suppress_keyword_on_failure():
+            try:
+                location = self._locate(reference_image, log_it=False)
+            except ImageNotFoundException:
+                LOGGER.info(
+                    f'Image "{reference_image}" was not found on screen; '
+                    f'no click performed.')
+                return 'FAIL'
+            LOGGER.info(
+                f'Clicking image "{reference_image}" in position {location}')
+            self._advanced_click_to_the_direction_of(location, 0, 0, clicks,
+                                                     button, interval)
+        return 'PASS'

@@ -64,30 +64,32 @@ class _Mouse(object):
 
     def click_with_offset_from_location(self, location: tuple, x_offset: int = 0, y_offset: int = 0, clicks=1,
                                         button='left', interval=0.0):
-        '''       
-        Clicks at given location with offset in both planes.
+        '''Clicks at the given location with an offset on both axes.
 
         ``location`` can be any Python sequence type (tuple, list, etc.) that
-        represents coordinates on the screen ie. have an x-value and y-value.
-        Locating-related keywords return location you can use with this
-        keyword.
+        represents coordinates on screen, i.e. it has an x-value and a
+        y-value. Locating-related keywords return a location you can use with
+        this keyword.
 
-        ``x_offset`` is the number of pixels from the specified ``location`` on the x-plane. Positive is offset to the right, negative to the left
+        ``x_offset`` is the number of pixels from ``location`` on the x-axis.
+        Positive values offset to the right, negative to the left.
 
-        ``y_offset`` is the number of pixels from the specified ``location`` on the y-plane. Positive is offset to the top, negative to the bottom.
+        ``y_offset`` is the number of pixels from ``location`` on the y-axis.
+        Positive values offset upwards, negative downwards.
 
         ``clicks`` is how many times the mouse button is clicked.
 
-        See `Click` for documentation for valid buttons.
+        See `Click` for documentation of valid buttons and `Double Click`
+        for ``interval``.
 
-        v1.2 Keyword
+        New in v1.2
 
         Example:
 
-        | ${image location}=    | Locate             | my image |        ||
-        | Click With Offset From Location | ${image location}  | 50       | -20        ||
-        | @{coordinates}=       | Create List        | ${600}   | ${500} ||
-        | Click With Offset From Location | ${coordinates}     | 0      | 25       | 2|
+        | ${image location}=              | Locate            | my image |        |   |
+        | Click With Offset From Location | ${image location} | 50       | -20    |   |
+        | @{coordinates}=                 | Create List       | ${600}   | ${500} |   |
+        | Click With Offset From Location | ${coordinates}    | 0        | 25     | 2 |
         '''
         self._advanced_click_to_the_direction_of(location, x_offset, y_offset,
                                                  clicks, button, interval)
@@ -125,8 +127,7 @@ class _Mouse(object):
         try:
             coordinates = [int(coord) for coord in coordinates]
         except ValueError:
-            raise MouseException('Coordinates %s are not integers' %
-                                 (coordinates,))
+            raise MouseException(f'Coordinates {coordinates} are not integers')
         ag.moveTo(*coordinates)
 
     def mouse_down(self, button='left'):
@@ -164,16 +165,24 @@ class _Mouse(object):
         ag.tripleClick(button=button, interval=float(interval))
 
     def click_with_offset(self, x_offset: int = 0, y_offset: int = 0, button: str = 'left', clicks: int = 1, interval: float = 0.0):
-        '''
-        Advanced click option on the current mouse position with all possible click adjustments.
+        '''Clicks at the current mouse position with an offset on both axes.
 
-        `x_offset` (int): offset on the x-plane. Positive is offset to the right, negative to the left
-        `y_offset` (int): offset on the y-plane. Positive is offset to the top, negative to the bottom
+        Applies the offsets relative to wherever the mouse pointer currently
+        is, with full control over button, clicks and interval.
 
-        See documentation of ``button`` in `Click`.
+        ``x_offset`` is the number of pixels from the current position on the
+        x-axis. Positive values offset to the right, negative to the left.
 
-        See documentation of ``interval`` in `Double Click`.
-        v1.2 Keyword
+        ``y_offset`` is the number of pixels from the current position on the
+        y-axis. Positive values offset upwards, negative downwards.
+
+        See `Click` for documentation of valid buttons and `Double Click`
+        for ``interval``.
+
+        Fails with `MouseException` if ``interval`` is set while ``clicks``
+        is 1, since the interval has no effect on a single click.
+
+        New in v1.2
         '''
         if interval != 0.0 and clicks == 1:
             raise MouseException(
@@ -182,17 +191,19 @@ class _Mouse(object):
                                                  x_offset, y_offset, clicks, button, interval)
 
     def scroll_window(self, scroll_amount: int = -500) -> None:
-        """
-        Scrolls by given amount. Positive amount is upwards, negative downwards.
-        Does not fail if screen can not be scrolled.
+        '''Scrolls the screen by the given amount.
 
-        ### Args
-        `scroll_amount` (int): Amount to scroll up- or downwards, default is -500 (downwards)
-        """
-        if isinstance(scroll_amount, int):
-            ag.scroll(scroll_amount)
-        elif isinstance(scroll_amount, str):
-            ag.scroll(int(scroll_amount))
-        else:
+        ``scroll_amount`` is the number of steps to scroll. Positive values
+        scroll upwards, negative downwards. Defaults to ``-500`` (downwards).
+
+        Does not fail if the screen cannot be scrolled.
+
+        New in v1.2
+        '''
+        try:
+            scroll_amount = int(scroll_amount)
+        except (ValueError, TypeError):
             raise MouseException(
-                f'Given number for `scroll_amount` could not be resolved: {scroll_amount}, type: {type(scroll_amount)}.')
+                f'Given value for `scroll_amount` could not be resolved: '
+                f'"{scroll_amount}", type: {type(scroll_amount)}.')
+        ag.scroll(scroll_amount)

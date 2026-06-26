@@ -163,13 +163,21 @@ class ImageHorizonLibrary(_Keyboard,
         return x, y
 
     def _get_advanced_location(self, location, x_offset, y_offset):
-        ''''
-        New method to get location with both offset planes
+        '''Returns a location adjusted by an offset on both axes.
+
+        ``location`` is the ``(x, y)`` base point. ``x_offset`` is added to x
+        (positive moves right), ``y_offset`` is subtracted from y so that a
+        positive value moves upwards (screen y grows downwards).
         '''
         x, y = location
-        x_offset = int(x_offset)
-        y_offset = int(y_offset)
-        return x+x_offset, y+y_offset
+        try:
+            x_offset = int(x_offset)
+            y_offset = int(y_offset)
+        except (ValueError, TypeError):
+            raise MouseException(
+                f'Offsets must be integers, got x_offset="{x_offset}", '
+                f'y_offset="{y_offset}".')
+        return x + x_offset, y - y_offset
 
     def _click_to_the_direction_of(self, direction, location, offset,
                                    clicks, button, interval):
@@ -192,30 +200,49 @@ class ImageHorizonLibrary(_Keyboard,
 
     def _advanced_click_to_the_direction_of(self, location, x_offset, y_offset,
                                             clicks, button, interval):
+        '''Clicks at a point defined by ``location`` plus pixel offsets.
+
+        Shared low-level helper behind the offset-aware click keywords
+        (e.g. `Click With Offset From Location`, `Click With Offset From
+        Image`, `Wait For And Click Image`). It resolves the target
+        coordinates, validates the click arguments and performs the click.
+
+        ``location`` is the ``(x, y)`` base point. If it is ``None``, the
+        current mouse position is used instead, so the offsets are applied
+        relative to where the cursor currently is.
+
+        ``x_offset`` and ``y_offset`` are the horizontal and vertical pixel
+        offsets added to the base point (positive values move right/up).
+
+        ``clicks`` is the number of clicks and is coerced to ``int``.
+
+        ``button`` selects the mouse button and must be one of ``left``,
+        ``middle`` or ``right``.
+
+        ``interval`` is the delay in seconds between successive clicks and
+        is coerced to ``float``.
+
+        Raises `MouseException` if ``clicks`` is not an integer, ``interval``
+        is not a float, or ``button`` is not one of the accepted values.
         '''
-        New method to click with different offsets in one keyword, see 'advanced_click'
-        '''
-        # location can be none
-        if location:
-            x, y = self._get_advanced_location(location, x_offset, y_offset)
-        else:
-            # get cur. location
-            x0, y0 = ag.position()
-            x, y = self._get_advanced_location((x0, y0), x_offset, y_offset)
+        if location is None:
+            location = ag.position()
+        x, y = self._get_advanced_location(location, x_offset, y_offset)
+
         try:
             clicks = int(clicks)
-        except ValueError:
-            raise MouseException('Invalid argument "%s" for `clicks`')
+        except (ValueError, TypeError):
+            raise MouseException(f'Invalid argument "{clicks}" for `clicks`')
         if button not in ['left', 'middle', 'right']:
-            raise MouseException('Invalid button "%s" for `button`')
+            raise MouseException(f'Invalid button "{button}" for `button`')
         try:
             interval = float(interval)
-        except ValueError:
-            raise MouseException('Invalid argument "%s" for `interval`')
+        except (ValueError, TypeError):
+            raise MouseException(
+                f'Invalid argument "{interval}" for `interval`')
 
-        LOGGER.info('Clicking %d time(s) at (%d, %d) with '
-                    '%s mouse button at interval %f' % (clicks, x, y,
-                                                        button, interval))
+        LOGGER.info(f'Clicking {clicks} time(s) at ({x}, {y}) with '
+                    f'{button} mouse button at interval {interval}')
         ag.click(x, y, clicks=clicks, button=button, interval=interval)
 
     def _convert_to_valid_special_key(self, key):

@@ -44,6 +44,21 @@ Keywords have also been added for more convenient usage, such as `Does Not Exist
 Planned features include the integration of new image processing options (such as blurring and edge detection)
 advanced image comparison settings, OCR options to get text from images/screenshots  and the ability to define custom search frames for more precise recognition.
 
+New Keywords
+-------------
+
+- Click With Offset
+- Click With Offset From Location
+- Scroll Window
+- Click Image (enhanced with optional arguments)
+- Click With Offset From Image
+- Does Not Exist
+- Wait For And Click Image
+- Click Image And Wait For
+- Click Image If Exists
+
+----
+
 Original Readme from eficode.
 ---------------------
 
