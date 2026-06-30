@@ -115,26 +115,31 @@ class ImageHorizonLibrary(_Keyboard,
 
     def __init__(self, reference_folder=None, screenshot_folder=None,
                  keyword_on_failure='ImageHorizonLibrary.Take A Screenshot',
-                 confidence=None):
+                 confidence=None, timeout=10):
         '''ImageHorizonLibrary can be imported with several options.
 
         ``reference_folder`` is path to the folder where all reference images
-        are stored. It must be a _valid absolute path_. As the library
-        is suite-specific (ie. new instance is created for every suite),
-        different suites can have different folders for it's reference images.
+            are stored. It must be a _valid absolute path_. As the library
+            is suite-specific (ie. new instance is created for every suite),
+            different suites can have different folders for it's reference images.
 
         ``screenshot_folder`` is path to the folder where screenshots are
-        saved. If not given, screenshots are saved to the current working
-        directory.
+            saved. If not given, screenshots are saved to the current working
+            directory.
 
         ``keyword_on_failure`` is the keyword to be run, when location-related
-        keywords fail. If you wish to not take screenshots, use for example
-        `BuiltIn.No Operation`. Keyword must however be a valid keyword.
+            keywords fail. If you wish to not take screenshots, use for example
+            `BuiltIn.No Operation`. Keyword must however be a valid keyword.
 
         ``confidence`` provides a tolerance for the ``reference_image``.
-                       It can be used if python-opencv is installed and
-                       is given as number between 0 and 1. Not used
-                       by default.
+            It can be used if python-opencv is installed and
+            is given as number between 0 and 1. Not used
+            by default.
+
+        ``timeout`` provides a default timeout for all keywords that support it.
+            This is overwritten if an explicit timeout is given as an argument.
+            It can also be used with a multiplier from the Variables section.
+            An example of usage in import is "timeout=${10 * ${MULTIPLICATOR}}"
         '''
 
         self.reference_folder = reference_folder
@@ -148,6 +153,7 @@ class ImageHorizonLibrary(_Keyboard,
         self.has_retina = utils.has_retina()
         self.has_cv = utils.has_cv()
         self.confidence = confidence
+        self.timeout = utils.check_timeout(timeout)
 
     def _get_location(self, direction, location, offset):
         x, y = location
@@ -173,10 +179,10 @@ class ImageHorizonLibrary(_Keyboard,
         try:
             x_offset = int(x_offset)
             y_offset = int(y_offset)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError) as e:
             raise MouseException(
                 f'Offsets must be integers, got x_offset="{x_offset}", '
-                f'y_offset="{y_offset}".')
+                f'y_offset="{y_offset}".') from e
         return x + x_offset, y - y_offset
 
     def _click_to_the_direction_of(self, direction, location, offset,
@@ -345,3 +351,14 @@ class ImageHorizonLibrary(_Keyboard,
                     "Can't set confidence to {}".format(new_confidence))
         else:
             self.confidence = None
+
+    def set_timeout(self, new_timeout: float):
+        '''Sets the default timeout when waiting for images.
+
+        ``new_timeout`` is a decimal number in seconds
+        '''
+        try:
+            self.timeout = float(new_timeout)
+        except (TypeError, ValueError):
+            LOGGER.warn(
+                f"Can't set timeout of type {type(new_timeout)} to {new_timeout}")

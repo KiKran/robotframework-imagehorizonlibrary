@@ -108,7 +108,8 @@ class _RecognizeImages(object):
         self._locate_and_click_direction('right', reference_image, offset,
                                          clicks, button, interval)
 
-    def click_with_offset_from_image(self, reference_image, x_offset=0, y_offset=0, timeout=None, clicks=1,
+    def click_with_offset_from_image(self, reference_image, x_offset=0, y_offset=0,
+                                     timeout: float | None = None, clicks=1,
                                      button='left', interval=0.0):
         '''Clicks the given reference image with an offset on both planes.
 
@@ -281,7 +282,7 @@ class _RecognizeImages(object):
         '''
         return self._locate(reference_image)
 
-    def wait_for(self, reference_image, timeout=10):
+    def wait_for(self, reference_image, timeout: float | None = None):
         '''Tries to locate given image from the screen for given time.
 
         Fail if the image is not found on the screen after ``timeout`` has
@@ -289,11 +290,13 @@ class _RecognizeImages(object):
 
         See `Reference image names` for documentation for ``reference_image``.
 
-        ``timeout`` is given in seconds.
+        ``timeout`` is given in seconds. If none given, default timeout is used.
 
         Returns Python tuple ``(x, y)`` of the coordinates.
         '''
-        stop_time = time() + int(timeout)
+        if timeout is None:
+            timeout = self.timeout
+        stop_time = time() + float(timeout)
         location = None
         with self._suppress_keyword_on_failure():
             while time() < stop_time:
@@ -308,7 +311,7 @@ class _RecognizeImages(object):
         LOGGER.info(f'Image "{reference_image}" found at {location}')
         return location
 
-    def wait_for_and_click_image(self, reference_image, timeout: int = 10, x_offset: int = 0, y_offset: int = 0, button: str = 'left', clicks: int = 1, interval: float = 0.0):
+    def wait_for_and_click_image(self, reference_image, timeout: float | None = None, x_offset: int = 0, y_offset: int = 0, button: str = 'left', clicks: int = 1, interval: float = 0.0):
         '''Tries to locate the given image on screen within ``timeout`` and
         clicks the found location.
 
@@ -323,7 +326,7 @@ class _RecognizeImages(object):
                                                  button, interval)
         return location
 
-    def click_image_and_wait_for(self, click_image, wait_image, timeout: int = 10, x_offset: int = 0, y_offset: int = 0, button: str = 'left', clicks: int = 1, interval: float = 0.0):
+    def click_image_and_wait_for(self, click_image, wait_image, timeout: float | None = None, x_offset: int = 0, y_offset: int = 0, button: str = 'left', clicks: int = 1, interval: float = 0.0):
         '''Clicks the given ``click_image`` and then waits for ``wait_image``
         to appear. Fails if either image is not found.
 

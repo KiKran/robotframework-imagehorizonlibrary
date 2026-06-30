@@ -56,6 +56,26 @@ New Keywords
 - Wait For And Click Image
 - Click Image And Wait For
 - Click Image If Exists
+- Set Timeout
+
+Default timeout
+---------------
+
+The library import accepts a ``timeout`` option (in seconds, defaults to
+``10``). It is used by every timeout-aware keyword (e.g. `Wait For`) whenever
+no explicit ``timeout`` is passed to the keyword. An explicit value on the
+keyword always takes precedence, and the default can be changed at runtime
+with `Set Timeout`.
+
+.. code:: robotframework
+
+    *** Settings ***
+    Library    ImageHorizonLibrary    timeout=30
+
+    *** Test Cases ***
+    Example
+        Wait For    dialog                # waits up to 30 s (library default)
+        Wait For    dialog    timeout=5   # waits up to 5 s (explicit wins)
 
 ----
 
